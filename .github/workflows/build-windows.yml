@@ -19,13 +19,23 @@ jobs:
           msystem: MINGW64
           update: true
           install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz
+      - name: Debug MSYS2 Environment
+        run: |
+          echo "Checking directory permissions:"
+          ls -ld /usr/local/bin
+          echo "Checking curl version:"
+          curl --version
+        shell: msys2 {0}
       - name: Install Composer
         run: |
-          curl -sS https://getcomposer.org/composer.phar -o /usr/local/bin/composer
-          chmod +x /usr/local/bin/composer
+          mkdir -p /tmp/composer
+          curl -sS https://getcomposer.org/composer.phar -o /tmp/composer/composer.phar
+          chmod +x /tmp/composer/composer.phar
+          echo "Composer installed at /tmp/composer/composer.phar"
         shell: msys2 {0}
       - name: Download PHP sources
         run: |
+          /tmp/composer/composer.phar install
           ./bin/spc download --clean
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
         shell: msys2 {0}
