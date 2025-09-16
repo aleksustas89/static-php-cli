@@ -1,40 +1,48 @@
-name: Build PHP for Windows
-
+name: Build PHP Windows EXE
 on:
   workflow_dispatch:
-    inputs:
-      php_version:
-        description: 'PHP version'
-        default: '8.3.25'
-      extensions:
-        description: 'Comma-separated extensions'
-        default: 'ftp,mbstring,tokenizer,openssl,curl,zip,pdo,pdo_sqlite,xml,simplexml,dom'
 
 jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup MSYS2
+      - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           update: true
-          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip
+          install: git make autoconf automake libtool pkg-config nasm unzip
 
-      - name: Download and extract PHP
-        shell: pwsh
+      - name: Download PHP 8.3.25 NTS
         run: |
           $phpZip = "$env:TEMP\php.zip"
           Invoke-WebRequest -Uri "https://windows.php.net/downloads/releases/archives/php-8.3.25-nts-Win32-vs16-x64.zip" -OutFile $phpZip
-          Expand-Archive -Path $phpZip -DestinationPath "C:\msys64\php" -Force
-          Remove-Item $phpZip
+          Expand-Archive -Path $phpZip -DestinationPath "C:\msys64\php"
+
+      - name: Prepare PHP extensions
+        run: |
           New-Item -ItemType Directory -Path "C:\msys64\php\ext" -Force
-          Get-ChildItem "C:\msys64\php" -Filter "*.dll" | Move-Item -Destination "C:\msys64\php\ext" -Force
-          Set-Content -Path "C:\msys64\php\php.ini" -Value "extension=openssl`nextension=ftp`nextension_dir=C:\msys64\php\ext"
-          "PHP Version:" 
-          & "C:\msys64\php\php.exe" -v
-          "Extensions:"
+          Move-Item "C:\msys64\php\*.dll" "C:\msys64\php\ext\" -Force
+          "extension=openssl" | Out-File "C:\msys64\php\php.ini"
+          "extension=ftp" | Out-File "C:\msys64\php\php.ini" -Append
+          "extension_dir=C:\msys64\php\ext" | Out-File "C:\msys64\php\php.ini" -Append
+          & "C:\msys64\php\php.exe" --version
           & "C:\msys64\php\php.exe" -m
+
+      - name: Checkout static-php-cli
+        run: git clone https://github.com/aleksustas89/static-php-cli.git C:\msys64\static-php
+
+      - name: Build PHP exe
+        run: |
+          cd C:\msys64\static-php
+          # пример: сборка CLI с нужными расширениями
+          ./bin/spc download --with-php=8.3 --for-extensions "ftp,mbstring,tokenizer,openssl,curl,zip,pdo,pdo_sqlite,xml,simplexml,dom"
+          ./bin/spc build --build-cli --build-embed "ftp,mbstring,tokenizer,openssl,curl,zip,pdo,pdo_sqlite,xml,simplexml,dom"
+
+      - name: Upload PHP EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-windows-exe
+          path: C:\msys64\static-php\bin\php.exe
