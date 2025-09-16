@@ -18,10 +18,11 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz mingw-w64-x86_64-php
+          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz
       - name: Install Composer
         run: |
-          curl -sS https://getcomposer.org/installer | /mingw64/bin/php -- --install-dir=/usr/local/bin --filename=composer
+          curl -sS https://getcomposer.org/composer.phar -o /usr/local/bin/composer
+          chmod +x /usr/local/bin/composer
         shell: msys2 {0}
       - name: Download PHP sources
         run: |
