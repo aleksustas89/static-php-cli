@@ -25,7 +25,9 @@ jobs:
           install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip curl
       - name: Install PHP for MSYS2
         run: |
-          mkdir -p D:\a\_temp\msys64\tmp
+          cmd /c mkdir D:\a\_temp\msys64\tmp
+          printf 'Checking if tmp directory exists:\n'
+          ls -ld /tmp
           cmd /c "D:\a\_temp\msys64\mingw64\bin\curl.exe" -L -o D:\a\_temp\msys64\tmp\php.zip "https://windows.php.net/downloads/releases/archives/php-8.3.0-nts-Win32-vs16-x64.zip"
           printf 'Checking if php.zip is valid:\n'
           file /tmp/php.zip
