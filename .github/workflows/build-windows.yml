@@ -22,20 +22,20 @@ jobs:
       - name: Debug MSYS2 Environment
         run: |
           echo "Checking directory permissions:"
+          mkdir -p /usr/local/bin
           ls -ld /usr/local/bin
           echo "Checking curl version:"
           curl --version
         shell: msys2 {0}
       - name: Install Composer
         run: |
-          mkdir -p /tmp/composer
-          curl -sS https://getcomposer.org/composer.phar -o /tmp/composer/composer.phar
-          chmod +x /tmp/composer/composer.phar
-          echo "Composer installed at /tmp/composer/composer.phar"
+          curl -sS https://getcomposer.org/composer.phar -o /usr/local/bin/composer
+          chmod +x /usr/local/bin/composer
+          echo "Composer installed at /usr/local/bin/composer"
         shell: msys2 {0}
       - name: Download PHP sources
         run: |
-          /tmp/composer/composer.phar install
+          /usr/local/bin/composer install
           ./bin/spc download --clean
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
         shell: msys2 {0}
