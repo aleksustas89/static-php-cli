@@ -15,6 +15,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: ftp, mbstring, openssl, curl, zip, pdo, pdo_sqlite, xml, dom
+          tools: composer
+
+      - name: Install static-php-cli dependencies
+        run: composer install --no-interaction --prefer-dist
+
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -28,47 +38,18 @@ jobs:
             mingw-w64-x86_64-libzip 
             mingw-w64-x86_64-curl 
             mingw-w64-x86_64-oniguruma 
-            mingw-w64-x86_64-xz 
-            unzip
+            mingw-w64-x86_64-xz
 
-      - name: Install PHP for build environment
+      - name: Download PHP sources
         run: |
-          # Скачиваем PHP для сборки
-          curl -L -o php-build.zip https://windows.php.net/downloads/releases/archives/php-8.3.0-nts-Win32-vs16-x64.zip
-          unzip php-build.zip -d /c/php-build
-          echo "C:/php-build" >> $GITHUB_PATH
-        shell: bash
-
-      - name: Install Composer
-        run: |
-          # Устанавливаем Composer глобально
-          curl -sS https://getcomposer.org/installer | /c/php-build/php.exe
-          mv composer.phar /usr/local/bin/composer
-          chmod +x /usr/local/bin/composer
-        shell: bash
-
-      - name: Setup static-php-cli
-        run: |
-          # Устанавливаем зависимости static-php-cli
-          /c/php-build/php.exe /usr/local/bin/composer install --no-interaction --prefer-dist
-        shell: bash
-
-      - name: Download PHP sources and dependencies
-        run: |
-          # Скачиваем исходники PHP и зависимости
           ./bin/spc download --clean
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
         shell: bash
-        env:
-          PATH: ${{ github.workspace }}/bin:/c/php-build:$PATH
 
       - name: Build static PHP
         run: |
-          # Собираем статический PHP
           ./bin/spc build --build-cli --build-embed "${{ github.event.inputs.extensions }}"
         shell: bash
-        env:
-          PATH: ${{ github.workspace }}/bin:/c/php-build:$PATH
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
