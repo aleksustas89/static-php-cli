@@ -13,6 +13,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install Visual C++ Redistributable
+        run: |
+          choco install vcredist140 -y
+        shell: cmd
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -25,6 +29,8 @@ jobs:
           printf 'Checking if php.zip is valid:\n'
           file /tmp/php.zip
           unzip /tmp/php.zip -d /mingw64
+          printf 'Checking if php.exe exists:\n'
+          ls -l /mingw64/php.exe
           printf 'Creating extension directory:\n'
           mkdir -p /mingw64/ext
           printf 'Copying all DLLs to extension directory:\n'
