@@ -24,19 +24,23 @@ jobs:
           update: true
           install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip
 
-      - name: Download PHP binary
+      - name: Download and extract PHP
+        shell: pwsh
         run: |
-          curl -L -o C:/msys64/tmp/php.zip https://windows.php.net/downloads/releases/archives/php-${{ github.event.inputs.php_version }}-nts-Win32-vs16-x64.zip
-          unzip C:/msys64/tmp/php.zip -d C:/msys64/php
-          mkdir -p C:/msys64/php/ext
-          mv C:/msys64/php/*.dll C:/msys64/php/ext/ 2>/dev/null || echo "No DLLs found"
-          echo "extension=openssl" > C:/msys64/php/php.ini
-          echo "extension=ftp" >> C:/msys64/php/php.ini
-          echo "extension_dir=C:/msys64/php/ext" >> C:/msys64/php/php.ini
-          C:/msys64/php/php.exe --version
-          C:/msys64/php/php.exe -m
+          $phpZip = "$env:TEMP\php.zip"
+          Invoke-WebRequest -Uri "https://windows.php.net/downloads/releases/archives/php-${{ github.event.inputs.php_version }}-nts-Win32-vs16-x64.zip" -OutFile $phpZip
+          Expand-Archive -Path $phpZip -DestinationPath "C:\msys64\php" -Force
+          Remove-Item $phpZip
+          New-Item -ItemType Directory -Path "C:\msys64\php\ext" -Force
+          Get-ChildItem "C:\msys64\php" -Filter "*.dll" | Move-Item -Destination "C:\msys64\php\ext" -Force
+          Set-Content -Path "C:\msys64\php\php.ini" -Value "extension=openssl`nextension=ftp`nextension_dir=C:\msys64\php\ext"
+          "PHP Version:" 
+          & "C:\msys64\php\php.exe" -v
+          "Extensions:"
+          & "C:\msys64\php\php.exe" -m
 
       - name: Build Static PHP CLI
+        shell: pwsh
         run: |
           git clone https://github.com/aleksustas89/static-php-cli.git
           cd static-php-cli
