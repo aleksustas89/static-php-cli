@@ -1,48 +1,78 @@
-name: Build PHP Windows EXE
+name: Build PHP for Windows
 on:
   workflow_dispatch:
-
+    inputs:
+      php_version:
+        description: 'PHP version'
+        default: '8.3'
+      extensions:
+        description: 'Comma-separated extensions'
+        default: 'ftp,mbstring,tokenizer,openssl,curl,zip,pdo,pdo_sqlite,xml,simplexml,dom'
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up MSYS2
+      - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           update: true
-          install: git make autoconf automake libtool pkg-config nasm unzip
-
-      - name: Download PHP 8.3.25 NTS
+          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip
+      - name: Install PHP for MSYS2
         run: |
-          $phpZip = "$env:TEMP\php.zip"
-          Invoke-WebRequest -Uri "https://windows.php.net/downloads/releases/archives/php-8.3.25-nts-Win32-vs16-x64.zip" -OutFile $phpZip
-          Expand-Archive -Path $phpZip -DestinationPath "C:\msys64\php"
-
-      - name: Prepare PHP extensions
+          curl -L -o /tmp/php.zip https://windows.php.net/downloads/releases/archives/php-8.3.0-nts-Win32-vs16-x64.zip
+          printf 'Checking if php.zip is valid:\n'
+          file /tmp/php.zip
+          unzip /tmp/php.zip -d /mingw64
+          printf 'Creating extension directory:\n'
+          mkdir -p /mingw64/ext
+          printf 'Copying all DLLs to extension directory:\n'
+          mv /mingw64/*.dll /mingw64/ext/ 2>/dev/null || printf 'No DLLs found in /mingw64\n'
+          printf 'Listing extension directory contents:\n'
+          ls -l /mingw64/ext
+          printf 'extension=openssl\n' > /mingw64/php.ini
+          printf 'extension=ftp\n' >> /mingw64/php.ini
+          printf 'extension_dir=/mingw64/ext\n' >> /mingw64/php.ini
+          printf 'PHP installed at /mingw64/php.exe\n'
+          PATH=$PATH:/mingw64
+          /mingw64/php.exe --version
+        shell: msys2 {0}
+      - name: Debug MSYS2 Environment
         run: |
-          New-Item -ItemType Directory -Path "C:\msys64\php\ext" -Force
-          Move-Item "C:\msys64\php\*.dll" "C:\msys64\php\ext\" -Force
-          "extension=openssl" | Out-File "C:\msys64\php\php.ini"
-          "extension=ftp" | Out-File "C:\msys64\php\php.ini" -Append
-          "extension_dir=C:\msys64\php\ext" | Out-File "C:\msys64\php\php.ini" -Append
-          & "C:\msys64\php\php.exe" --version
-          & "C:\msys64\php\php.exe" -m
-
-      - name: Checkout static-php-cli
-        run: git clone https://github.com/aleksustas89/static-php-cli.git C:\msys64\static-php
-
-      - name: Build PHP exe
+          printf 'Checking directory permissions:\n'
+          mkdir -p /usr/local/bin
+          ls -ld /usr/local/bin
+          printf 'Checking curl version:\n'
+          curl --version
+          printf 'Checking PHP availability:\n'
+          PATH=$PATH:/mingw64
+          /mingw64/php.exe --version
+          printf 'Checking PHP extensions:\n'
+          /mingw64/php.exe -m
+          printf 'Checking extension directory contents:\n'
+          ls -l /mingw64/ext
+        shell: msys2 {0}
+      - name: Install Composer
         run: |
-          cd C:\msys64\static-php
-          # пример: сборка CLI с нужными расширениями
-          ./bin/spc download --with-php=8.3 --for-extensions "ftp,mbstring,tokenizer,openssl,curl,zip,pdo,pdo_sqlite,xml,simplexml,dom"
-          ./bin/spc build --build-cli --build-embed "ftp,mbstring,tokenizer,openssl,curl,zip,pdo,pdo_sqlite,xml,simplexml,dom"
-
-      - name: Upload PHP EXE
+          curl -sS https://getcomposer.org/composer.phar -o /usr/local/bin/composer
+          chmod +x /usr/local/bin/composer
+          printf 'Composer installed at /usr/local/bin/composer\n'
+        shell: msys2 {0}
+      - name: Download PHP sources
+        run: |
+          PATH=$PATH:/mingw64
+          /mingw64/php.exe /usr/local/bin/composer config -g secure-http false
+          /mingw64/php.exe /usr/local/bin/composer install --no-interaction --prefer-dist
+          ./bin/spc download --clean
+          ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
+        shell: msys2 {0}
+      - name: Build PHP
+        run: |
+          ./bin/spc build --build-cli --build-embed "${{ github.event.inputs.extensions }}"
+        shell: msys2 {0}
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: php-windows-exe
-          path: C:\msys64\static-php\bin\php.exe
+          name: php-windows
+          path: bin/php.exe
