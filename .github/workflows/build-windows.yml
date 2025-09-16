@@ -25,7 +25,7 @@ jobs:
           install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip curl
       - name: Install PHP for MSYS2
         run: |
-          curl -L -o /tmp/php.zip https://windows.php.net/downloads/releases/archives/php-8.3.0-nts-Win32-vs16-x64.zip
+          cmd /c "D:\a\_temp\msys64\mingw64\bin\curl.exe" -L -o /tmp/php.zip https://windows.php.net/downloads/releases/archives/php-8.3.0-nts-Win32-vs16-x64.zip
           printf 'Checking if php.zip is valid:\n'
           file /tmp/php.zip
           unzip /tmp/php.zip -d /mingw64
@@ -53,7 +53,7 @@ jobs:
           mkdir -p /usr/local/bin
           ls -ld /usr/local/bin
           printf 'Checking curl version:\n'
-          curl --version
+          cmd /c "D:\a\_temp\msys64\mingw64\bin\curl.exe" --version
           printf 'Checking PHP availability:\n'
           cmd /c "D:\a\_temp\msys64\mingw64\php.exe" --version
           printf 'Checking PHP extensions:\n'
@@ -68,19 +68,19 @@ jobs:
           echo $PATH
           printf 'Checking curl availability:\n'
           ls -l /mingw64/bin/curl*
-          which curl || (echo "curl not found" && exit 1)
+          which curl || (echo "curl not found in MSYS2, but proceeding with cmd" && true)
           ldd /mingw64/bin/curl.exe 2>/dev/null || printf 'ldd not available or curl.exe not found\n'
-          curl -sS https://getcomposer.org/installer -o composer-setup.php
-          /mingw64/bin/php.exe composer-setup.php --install-dir=/mingw64/bin --filename=composer
+          cmd /c "D:\a\_temp\msys64\mingw64\bin\curl.exe" -sS https://getcomposer.org/installer -o composer-setup.php
+          cmd /c "D:\a\_temp\msys64\mingw64\bin\php.exe" composer-setup.php --install-dir=D:\a\_temp\msys64\mingw64\bin --filename=composer
           rm composer-setup.php
           printf 'Composer installed at /mingw64/bin/composer\n'
-          /mingw64/bin/composer --version
+          cmd /c "D:\a\_temp\msys64\mingw64\bin\composer" --version
         shell: msys2 {0}
       - name: Download PHP sources
         run: |
           PATH=$PATH:/mingw64/bin
-          /mingw64/bin/composer config -g secure-http false
-          /mingw64/bin/composer install --no-interaction --prefer-dist
+          cmd /c "D:\a\_temp\msys64\mingw64\bin\composer" config -g secure-http false
+          cmd /c "D:\a\_temp\msys64\mingw64\bin\composer" install --no-interaction --prefer-dist
           ./bin/spc download --clean
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
         shell: msys2 {0}
