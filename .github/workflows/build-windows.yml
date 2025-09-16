@@ -18,17 +18,19 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip
+          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz mingw-w64-x86_64-libcrypto unzip
       - name: Install PHP for MSYS2
         run: |
-          curl -L -o /tmp/php.zip https://windows.php.net/downloads/releases/archives/php-8.3.0-nts-Win32-vs16-x64.zip
+          curl -L -o /tmp/php.zip https://windows.php.net/downloads/releases/php-8.3.12-nts-Win32-vs16-x64.zip
           printf 'Checking if php.zip is valid:\n'
           file /tmp/php.zip
           unzip /tmp/php.zip -d /mingw64
           printf 'Creating extension directory:\n'
           mkdir -p /mingw64/ext
-          printf 'Copying openssl extension:\n'
-          mv /mingw64/php_openssl.dll /mingw64/ext/ 2>/dev/null || printf 'php_openssl.dll not found in /mingw64\n'
+          printf 'Copying all DLLs to extension directory:\n'
+          mv /mingw64/*.dll /mingw64/ext/ 2>/dev/null || printf 'No DLLs found in /mingw64\n'
+          printf 'Listing extension directory contents:\n'
+          ls -l /mingw64/ext
           printf 'extension=openssl\n' > /mingw64/php.ini
           printf 'extension_dir=/mingw64/ext\n' >> /mingw64/php.ini
           printf 'PHP installed at /mingw64/php.exe\n'
@@ -56,7 +58,7 @@ jobs:
         shell: msys2 {0}
       - name: Download PHP sources
         run: |
-          export COMPOSER_DISABLE_TLS=true
+          /mingw64/php.exe /usr/local/bin/composer config -g secure-http false
           /mingw64/php.exe /usr/local/bin/composer install --no-interaction --prefer-dist
           ./bin/spc download --clean
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
