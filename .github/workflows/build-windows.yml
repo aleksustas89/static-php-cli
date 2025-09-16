@@ -1,0 +1,39 @@
+name: Build PHP for Windows
+on:
+  workflow_dispatch:
+    inputs:
+      php_version:
+        description: 'PHP version'
+        default: '8.3'
+      extensions:
+        description: 'Comma-separated extensions'
+        default: 'ftp,mbstring,tokenizer,openssl,curl,zip,pdo,pdo_sqlite,xml,simplexml,dom'
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma
+      - name: Install Composer
+        run: |
+          curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+        shell: msys2 {0}
+      - name: Download PHP sources
+        run: |
+          ./bin/spc download --clean
+          ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
+        shell: msys2 {0}
+      - name: Build PHP
+        run: |
+          ./bin/spc build --build-cli --build-embed "${{ github.event.inputs.extensions }}"
+        shell: msys2 {0}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-windows
+          path: bin/php.exe
