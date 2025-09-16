@@ -63,6 +63,7 @@ jobs:
           chmod +x /usr/local/bin/composer.phar
           printf 'Composer installed at /usr/local/bin/composer.phar\n'
           ls -l /usr/local/bin/composer.phar
+          cmd /c "D:\a\_temp\msys64\mingw64\php.exe" D:\a\_temp\msys64\usr\local\bin\composer.phar --version
         shell: msys2 {0}
       - name: Download PHP sources
         run: |
