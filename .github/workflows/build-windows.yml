@@ -22,47 +22,30 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc \
-                   mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip \
-                   mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype \
-                   mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp \
-                   mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip
+          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip
 
-      - name: Download and extract PHP
+      - name: Download PHP binary
         run: |
-          curl -L -o /tmp/php.zip https://windows.php.net/downloads/releases/archives/php-${{ github.event.inputs.php_version }}-nts-Win32-vs16-x64.zip
-          unzip /tmp/php.zip -d /mingw64
-          mkdir -p /mingw64/ext
-          mv /mingw64/*.dll /mingw64/ext/ 2>/dev/null || echo "No DLLs to move"
-          echo "extension_dir=/mingw64/ext" > /mingw64/php.ini
-          for ext in $(echo "${{ github.event.inputs.extensions }}" | tr "," "\n"); do
-            echo "extension=$ext" >> /mingw64/php.ini
-          done
-          /mingw64/php.exe --version
-          /mingw64/php.exe -m
-        shell: bash
+          curl -L -o C:/msys64/tmp/php.zip https://windows.php.net/downloads/releases/archives/php-${{ github.event.inputs.php_version }}-nts-Win32-vs16-x64.zip
+          unzip C:/msys64/tmp/php.zip -d C:/msys64/php
+          mkdir -p C:/msys64/php/ext
+          mv C:/msys64/php/*.dll C:/msys64/php/ext/ 2>/dev/null || echo "No DLLs found"
+          echo "extension=openssl" > C:/msys64/php/php.ini
+          echo "extension=ftp" >> C:/msys64/php/php.ini
+          echo "extension_dir=C:/msys64/php/ext" >> C:/msys64/php/php.ini
+          C:/msys64/php/php.exe --version
+          C:/msys64/php/php.exe -m
 
-      - name: Install Composer
+      - name: Build Static PHP CLI
         run: |
-          curl -sS https://getcomposer.org/composer.phar -o /usr/local/bin/composer
-          chmod +x /usr/local/bin/composer
-          composer --version
-        shell: bash
-
-      - name: Download PHP sources for static build
-        run: |
-          PATH=$PATH:/mingw64
+          git clone https://github.com/aleksustas89/static-php-cli.git
+          cd static-php-cli
           ./bin/spc download --clean
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
-        shell: bash
-
-      - name: Build PHP
-        run: |
           ./bin/spc build --build-cli --build-embed "${{ github.event.inputs.extensions }}"
-        shell: bash
 
-      - name: Upload artifact
+      - name: Upload PHP artifact
         uses: actions/upload-artifact@v4
         with:
           name: php-windows
-          path: bin/php.exe
+          path: static-php-cli/bin/php.exe
