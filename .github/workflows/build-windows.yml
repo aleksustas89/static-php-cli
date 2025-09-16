@@ -22,7 +22,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip
+          install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip curl
       - name: Install PHP for MSYS2
         run: |
           curl -L -o /tmp/php.zip https://windows.php.net/downloads/releases/archives/php-8.3.0-nts-Win32-vs16-x64.zip
@@ -64,6 +64,8 @@ jobs:
       - name: Install Composer
         run: |
           PATH=$PATH:/mingw64/bin
+          printf 'Checking curl availability:\n'
+          ls -l /mingw64/bin/curl*
           which curl || (echo "curl not found" && exit 1)
           curl -sS https://getcomposer.org/installer -o composer-setup.php
           /mingw64/bin/php.exe composer-setup.php --install-dir=/mingw64/bin --filename=composer
