@@ -31,15 +31,19 @@ jobs:
           unzip /tmp/php.zip -d /mingw64
           printf 'Checking if php.exe exists:\n'
           ls -l /mingw64/php.exe
-          printf 'Copying php.exe and php.ini to /mingw64/bin:\n'
-          cp /mingw64/php.exe /mingw64/bin/php.exe
-          cp /mingw64/php.ini /mingw64/bin/php.ini
           printf 'Creating extension directory:\n'
           mkdir -p /mingw64/ext
           printf 'Copying all DLLs to extension directory:\n'
           mv /mingw64/*.dll /mingw64/ext/ 2>/dev/null || printf 'No DLLs found in /mingw64\n'
           printf 'Listing extension directory contents:\n'
           ls -l /mingw64/ext
+          printf 'Creating php.ini:\n'
+          printf 'extension=openssl\n' > /mingw64/php.ini
+          printf 'extension=ftp\n' >> /mingw64/php.ini
+          printf 'extension_dir=/mingw64/ext\n' >> /mingw64/php.ini
+          printf 'Copying php.exe and php.ini to /mingw64/bin:\n'
+          cp /mingw64/php.exe /mingw64/bin/php.exe
+          cp /mingw64/php.ini /mingw64/bin/php.ini
           printf 'PHP installed at /mingw64/bin/php.exe\n'
           cmd /c "D:\a\_temp\msys64\mingw64\php.exe" --version
         shell: msys2 {0}
