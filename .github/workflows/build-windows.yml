@@ -64,9 +64,12 @@ jobs:
       - name: Install Composer
         run: |
           PATH=$PATH:/mingw64/bin
+          printf 'Checking PATH:\n'
+          echo $PATH
           printf 'Checking curl availability:\n'
           ls -l /mingw64/bin/curl*
           which curl || (echo "curl not found" && exit 1)
+          ldd /mingw64/bin/curl.exe 2>/dev/null || printf 'ldd not available or curl.exe not found\n'
           curl -sS https://getcomposer.org/installer -o composer-setup.php
           /mingw64/bin/php.exe composer-setup.php --install-dir=/mingw64/bin --filename=composer
           rm composer-setup.php
