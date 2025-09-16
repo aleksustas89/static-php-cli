@@ -35,7 +35,7 @@ jobs:
           printf 'extension=ftp\n' >> /mingw64/php.ini
           printf 'extension_dir=/mingw64/ext\n' >> /mingw64/php.ini
           printf 'PHP installed at /mingw64/php.exe\n'
-          /mingw64/bin/php.exe --version
+          /mingw64/php.exe --version
         shell: msys2 {0}
       - name: Debug MSYS2 Environment
         run: |
@@ -45,9 +45,9 @@ jobs:
           printf 'Checking curl version:\n'
           curl --version
           printf 'Checking PHP availability:\n'
-          /mingw64/bin/php.exe --version
+          /mingw64/php.exe --version
           printf 'Checking PHP extensions:\n'
-          /mingw64/bin/php.exe -m
+          /mingw64/php.exe -m
           printf 'Checking extension directory contents:\n'
           ls -l /mingw64/ext
         shell: msys2 {0}
@@ -59,8 +59,8 @@ jobs:
         shell: msys2 {0}
       - name: Download PHP sources
         run: |
-          /mingw64/bin/php.exe /usr/local/bin/composer config -g secure-http false
-          /mingw64/bin/php.exe /usr/local/bin/composer install --no-interaction --prefer-dist
+          /mingw64/php.exe /usr/local/bin/composer config -g secure-http false
+          /mingw64/php.exe /usr/local/bin/composer install --no-interaction --prefer-dist
           ./bin/spc download --clean
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
         shell: msys2 {0}
