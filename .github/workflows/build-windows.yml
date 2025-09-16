@@ -5,7 +5,7 @@ on:
     inputs:
       php_version:
         description: 'PHP version'
-        default: '8.3'
+        default: '8.3.25'
       extensions:
         description: 'Comma-separated extensions'
         default: 'ftp,mbstring,tokenizer,openssl,curl,zip,pdo,pdo_sqlite,xml,simplexml,dom'
@@ -13,9 +13,9 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
@@ -28,7 +28,7 @@ jobs:
         shell: pwsh
         run: |
           $phpZip = "$env:TEMP\php.zip"
-          Invoke-WebRequest -Uri "https://windows.php.net/downloads/releases/archives/php-${{ github.event.inputs.php_version }}-nts-Win32-vs16-x64.zip" -OutFile $phpZip
+          Invoke-WebRequest -Uri "https://windows.php.net/downloads/releases/archives/php-8.3.25-nts-Win32-vs16-x64.zip" -OutFile $phpZip
           Expand-Archive -Path $phpZip -DestinationPath "C:\msys64\php" -Force
           Remove-Item $phpZip
           New-Item -ItemType Directory -Path "C:\msys64\php\ext" -Force
@@ -38,18 +38,3 @@ jobs:
           & "C:\msys64\php\php.exe" -v
           "Extensions:"
           & "C:\msys64\php\php.exe" -m
-
-      - name: Build Static PHP CLI
-        shell: pwsh
-        run: |
-          git clone https://github.com/aleksustas89/static-php-cli.git
-          cd static-php-cli
-          ./bin/spc download --clean
-          ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
-          ./bin/spc build --build-cli --build-embed "${{ github.event.inputs.extensions }}"
-
-      - name: Upload PHP artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: php-windows
-          path: static-php-cli/bin/php.exe
