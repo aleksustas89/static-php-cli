@@ -69,15 +69,6 @@ jobs:
           printf 'Checking extension directory contents:\n'
           ls -l /mingw64/ext
         shell: msys2 {0}
-      - name: Install Composer
-        run: |
-          printf 'Downloading Composer directly...\n'
-          curl -sS https://getcomposer.org/composer.phar -o /mingw64/bin/composer
-          chmod +x /mingw64/bin/composer
-          
-          printf 'Verifying Composer...\n'
-          cmd /c "D:\a\_temp\msys64\mingw64\bin\php.exe" /mingw64/bin/composer --version
-        shell: msys2 {0}
       - name: Download PHP sources
         run: |
           /mingw64/bin/composer config -g secure-http false
