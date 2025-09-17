@@ -40,17 +40,13 @@ jobs:
             mingw-w64-x86_64-oniguruma 
             mingw-w64-x86_64-xz
             tar
-            unzip
 
       - name: Install PHP SDK Tools
         run: |
-          echo "Installing php-sdk-binary-tools..."
           curl -L -o php-sdk.zip https://github.com/microsoft/php-sdk-binary-tools/archive/refs/heads/master.zip
           unzip php-sdk.zip -d php-sdk-binary-tools
           mv php-sdk-binary-tools/php-sdk-binary-tools-master/* php-sdk-binary-tools/
           rm -rf php-sdk-binary-tools/php-sdk-binary-tools-master
-          echo "PHP SDK tools installed:"
-          ls -la php-sdk-binary-tools/bin/
         shell: bash
 
       - name: Create directories
@@ -62,31 +58,23 @@ jobs:
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
         shell: bash
 
-      - name: Manual PHP extraction
+      - name: Manual PHP extraction (fixed)
         run: |
-          echo "Manually extracting PHP source..."
+          echo "Extracting PHP source with proper paths..."
           
-          # Проверяем что архив существует
-          if [ ! -f "downloads/php-8.3.25.tar.xz" ]; then
-            echo "ERROR: PHP archive not found!"
-            exit 1
-          fi
-          
-          # Очищаем старую директорию
+          # Очищаем и создаем заново
           rm -rf source/php-src
           mkdir -p source/php-src
           
-          # Распаковываем вручную
-          echo "Extracting with tar..."
-          tar -xf downloads/php-8.3.25.tar.xz -C source/php-src --strip-components=1
+          # Распаковываем используя MSYS2 tar
+          tar -xf downloads/php-8.3.25.tar.xz --strip-components=1 -C source/php-src
           
-          # Проверяем что распаковалось
-          echo "Verifying extraction..."
-          ls -la source/php-src/
+          # Проверяем успешность
           if [ -f "source/php-src/main/php_version.h" ]; then
-            echo "SUCCESS: PHP source extracted successfully!"
+            echo "✅ SUCCESS: PHP source ready!"
           else
-            echo "ERROR: PHP source extraction failed!"
+            echo "❌ FAILED: php_version.h not found"
+            ls -la source/php-src/
             exit 1
           fi
         shell: bash
