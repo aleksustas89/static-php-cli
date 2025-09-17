@@ -77,8 +77,9 @@ jobs:
           curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
           printf 'Checking if composer-setup.php exists:\n'
           ls -l /tmp/composer-setup.php
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" /tmp/composer-setup.php --install-dir=D:\\a\\_temp\\msys64\\mingw64\\bin --filename=composer
-          rm /tmp/composer-setup.php
+          cmd /c dir D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
+          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" D:\\a\\_temp\\msys64\\tmp\\composer-setup.php --install-dir=D:\\a\\_temp\\msys64\\mingw64\\bin --filename=composer
+          cmd /c del D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
           printf 'Composer installed at /mingw64/bin/composer\n'
           cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\composer" --version
         shell: msys2 {0}
