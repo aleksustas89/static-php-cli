@@ -71,14 +71,9 @@ jobs:
         shell: msys2 {0}
       - name: Install Composer
         run: |
-          printf 'Checking PHP availability...\n'
-          cmd /c "D:\a\_temp\msys64\mingw64\bin\php.exe" --version
-          
-          printf 'Downloading Composer installer...\n'
-          curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
-          
-          printf 'Installing Composer...\n'
-          cmd /c "D:\a\_temp\msys64\mingw64\bin\php.exe" /tmp/composer-setup.php --install-dir=/mingw64/bin --filename=composer
+          printf 'Downloading Composer directly...\n'
+          curl -sS https://getcomposer.org/composer.phar -o /mingw64/bin/composer
+          chmod +x /mingw64/bin/composer
           
           printf 'Verifying Composer...\n'
           cmd /c "D:\a\_temp\msys64\mingw64\bin\php.exe" /mingw64/bin/composer --version
