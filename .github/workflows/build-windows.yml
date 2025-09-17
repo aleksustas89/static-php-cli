@@ -40,6 +40,18 @@ jobs:
             mingw-w64-x86_64-oniguruma 
             mingw-w64-x86_64-xz
             tar
+            unzip
+
+      - name: Install PHP SDK Tools
+        run: |
+          echo "Installing php-sdk-binary-tools..."
+          curl -L -o php-sdk.zip https://github.com/microsoft/php-sdk-binary-tools/archive/refs/heads/master.zip
+          unzip php-sdk.zip -d php-sdk-binary-tools
+          mv php-sdk-binary-tools/php-sdk-binary-tools-master/* php-sdk-binary-tools/
+          rm -rf php-sdk-binary-tools/php-sdk-binary-tools-master
+          echo "PHP SDK tools installed:"
+          ls -la php-sdk-binary-tools/bin/
+        shell: bash
 
       - name: Create directories
         run: mkdir -p source/php-src downloads buildroot
@@ -48,14 +60,6 @@ jobs:
       - name: Download PHP sources
         run: |
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
-        shell: bash
-
-      - name: Verify download
-        run: |
-          echo "=== DOWNLOADS DIRECTORY ==="
-          ls -la downloads/
-          echo "=== PHP-SDK TOOLS ==="
-          ls -la php-sdk-binary-tools/bin/
         shell: bash
 
       - name: Manual PHP extraction
