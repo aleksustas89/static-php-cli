@@ -49,7 +49,7 @@ jobs:
           cp /mingw64/php.exe /mingw64/bin/php.exe
           cp /mingw64/php.ini /mingw64/bin/php.ini
           printf 'PHP installed at /mingw64/bin/php.exe\n'
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\php.exe" --version
+          /mingw64/bin/php.exe --version
         shell: msys2 {0}
       - name: Debug MSYS2 Environment
         run: |
@@ -57,42 +57,42 @@ jobs:
           mkdir -p /usr/local/bin
           ls -ld /usr/local/bin
           printf 'Checking curl version:\n'
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\curl.exe" --version
+          /mingw64/bin/curl.exe --version
           printf 'Checking PHP availability:\n'
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\php.exe" --version
+          /mingw64/bin/php.exe --version
           printf 'Checking PHP extensions:\n'
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\php.exe" -m
+          /mingw64/bin/php.exe -m
           printf 'Checking extension directory contents:\n'
           ls -l /mingw64/ext
         shell: msys2 {0}
       - name: Install Composer
         run: |
-          cmd /c mkdir D:\\a\\_temp\\msys64\\tmp
+          mkdir -p /tmp
           printf 'Checking if tmp directory exists:\n'
-          ls -l /tmp
-          printf 'Checking PHP extensions for Composer:\n'
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" -m
+          ls -ld /tmp
+          printf 'Checking PHP version and extensions:\n'
+          /mingw64/bin/php.exe --version
+          /mingw64/bin/php.exe -m
           curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
           printf 'Checking if composer-setup.php exists:\n'
-          cmd /c dir D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" D:\\a\\_temp\\msys64\\tmp\\composer-setup.php > D:\\a\\_temp\\msys64\\tmp\\composer-install.log 2>&1
+          ls -l /tmp/composer-setup.php
+          /mingw64/bin/php.exe /tmp/composer-setup.php > /tmp/composer-install.log 2>&1
           printf 'Composer installation log:\n'
-          cat D:\\a\\_temp\\msys64\\tmp\\composer-install.log
+          cat /tmp/composer-install.log
           if [ $? -ne 0 ]; then echo "Composer installation failed" && exit 1; fi
           printf 'Checking if composer.phar exists:\n'
-          cmd /c dir D:\\a\\_temp\\msys64\\tmp\\composer.phar
-          cmd /c copy D:\\a\\_temp\\msys64\\tmp\\composer.phar D:\\a\\_temp\\msys64\\mingw64\\bin\\composer
-          cmd /c del D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
-          cmd /c del D:\\a\\_temp\\msys64\\tmp\\composer.phar
+          ls -l /tmp/composer.phar
+          mv /tmp/composer.phar /mingw64/bin/composer
+          rm /tmp/composer-setup.php
           printf 'Checking if composer exists:\n'
-          cmd /c dir D:\\a\\_temp\\msys64\\mingw64\\bin\\composer*
+          ls -l /mingw64/bin/composer
           printf 'Composer installed at /mingw64/bin/composer\n'
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\composer" --version
+          /mingw64/bin/composer --version
         shell: msys2 {0}
       - name: Download PHP sources
         run: |
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\composer" config -g secure-http false
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\composer" install --no-interaction --prefer-dist
+          /mingw64/bin/composer config -g secure-http false
+          /mingw64/bin/composer install --no-interaction --prefer-dist
           ./bin/spc download --clean
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
         shell: msys2 {0}
