@@ -71,26 +71,24 @@ jobs:
         shell: msys2 {0}
       - name: Install Composer
         run: |
-          mkdir -p /tmp
-          printf 'Checking if tmp directory exists:\n'
-          ls -ld /tmp
-          printf 'Checking PHP version and extensions:\n'
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" --version
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" -m
+          printf 'Checking PHP availability:\n'
+          which php || echo "php not found in PATH"
+          find /mingw64 -name "php.exe" -type f
+          
+          printf 'Downloading Composer...\n'
           curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
-          printf 'Checking if composer-setup.php exists:\n'
-          ls -l /tmp/composer-setup.php
-          /mingw64/bin/php.exe /tmp/composer-setup.php > /tmp/composer-install.log 2>&1
-          printf 'Composer installation log:\n'
-          cat /tmp/composer-install.log
-          if [ $? -ne 0 ]; then echo "Composer installation failed" && exit 1; fi
-          printf 'Checking if composer.phar exists:\n'
-          ls -l /tmp/composer.phar
-          mv /tmp/composer.phar /mingw64/bin/composer
-          rm /tmp/composer-setup.php
-          printf 'Checking if composer exists:\n'
-          ls -l /mingw64/bin/composer
-          printf 'Composer installed at /mingw64/bin/composer\n'
+          
+          printf 'Installing Composer with PHP...\n'
+          # Используем абсолютный путь к php.exe
+          /mingw64/bin/php.exe /tmp/composer-setup.php --install-dir=/mingw64/bin --filename=composer
+          
+          printf 'Checking Composer installation...\n'
+          /mingw64/bin/php.exe /mingw64/bin/composer --version
+          
+          printf 'Making composer executable...\n'
+          chmod +x /mingw64/bin/composer
+          
+          printf 'Final check...\n'
           /mingw64/bin/composer --version
         shell: msys2 {0}
       - name: Download PHP sources
