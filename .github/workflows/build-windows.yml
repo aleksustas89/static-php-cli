@@ -77,9 +77,9 @@ jobs:
           which curl || (echo "curl not found in MSYS2, but proceeding with cmd" && true)
           ldd /mingw64/bin/curl.exe 2>/dev/null || printf 'ldd not available or curl.exe not found\n'
           cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\curl.exe" -sS https://getcomposer.org/installer -o D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" D))^
-
-System: D:\\a\\_temp\\msys64\\tmp\\composer-setup.php --install-dir=D:\\a\\_temp\\msys64\\mingw64\\bin --filename=composer
+          printf 'Checking if composer-setup.php exists:\n'
+          ls -l D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
+          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" D:\\a\\_temp\\msys64\\tmp\\composer-setup.php --install-dir=D:\\a\\_temp\\msys64\\mingw64\\bin --filename=composer
           rm D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
           printf 'Composer installed at /mingw64/bin/composer\n'
           cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\composer" --version
