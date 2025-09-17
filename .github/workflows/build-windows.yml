@@ -25,11 +25,9 @@ jobs:
           install: git make autoconf automake libtool pkg-config nasm mingw-w64-x86_64-gcc mingw-w64-x86_64-openssl mingw-w64-x86_64-libxml2 mingw-w64-x86_64-libzip mingw-w64-x86_64-libpng mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-freetype mingw-w64-x86_64-curl mingw-w64-x86_64-oniguruma mingw-w64-x86_64-libwebp mingw-w64-x86_64-libssh2 mingw-w64-x86_64-nghttp2 mingw-w64-x86_64-xz unzip curl
       - name: Install PHP for MSYS2
         run: |
-          cmd /c mkdir D:\\a\\_temp\\msys64\\tmp
-          printf 'Checking if tmp directory exists:\n'
-          ls -ld /tmp
-          cd D:\\a\\_temp\\msys64\\tmp
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\curl.exe" -L -o D:\\a\\_temp\\msys64\\tmp\\php.zip "https://windows.php.net/downloads/releases/archives/php-8.3.0-nts-Win32-vs16-x64.zip"
+          printf 'Checking curl availability in MSYS2:\n'
+          curl --version || (echo "curl not found in MSYS2" && exit 1)
+          curl -L -o /tmp/php.zip https://windows.php.net/downloads/releases/archives/php-8.3.0-nts-Win32-vs16-x64.zip
           printf 'Checking if php.zip exists:\n'
           ls -l /tmp/php.zip
           printf 'Checking if php.zip is valid:\n'
@@ -76,11 +74,11 @@ jobs:
           ls -l /mingw64/bin/curl*
           which curl || (echo "curl not found in MSYS2, but proceeding with cmd" && true)
           ldd /mingw64/bin/curl.exe 2>/dev/null || printf 'ldd not available or curl.exe not found\n'
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\curl.exe" -sS https://getcomposer.org/installer -o D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
+          curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
           printf 'Checking if composer-setup.php exists:\n'
-          ls -l D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
-          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" D:\\a\\_temp\\msys64\\tmp\\composer-setup.php --install-dir=D:\\a\\_temp\\msys64\\mingw64\\bin --filename=composer
-          rm D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
+          ls -l /tmp/composer-setup.php
+          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" /tmp/composer-setup.php --install-dir=D:\\a\\_temp\\msys64\\mingw64\\bin --filename=composer
+          rm /tmp/composer-setup.php
           printf 'Composer installed at /mingw64/bin/composer\n'
           cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\composer" --version
         shell: msys2 {0}
