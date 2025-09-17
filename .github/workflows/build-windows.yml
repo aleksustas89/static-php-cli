@@ -74,7 +74,7 @@ jobs:
           printf 'Checking if composer-setup.php exists:\n'
           cmd /c dir D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
           cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" D:\\a\\_temp\\msys64\\tmp\\composer-setup.php --install-dir=D:\\a\\_temp\\msys64\\mingw64\\bin --filename=composer > D:\\a\\_temp\\msys64\\tmp\\composer-install.log 2>&1
-          if %ERRORLEVEL% neq 0 (type D:\\a\\_temp\\msys64\\tmp\\composer-install.log && exit 1)
+          if [ $? -ne 0 ]; then cat D:\\a\\_temp\\msys64\\tmp\\composer-install.log && exit 1; fi
           cmd /c del D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
           printf 'Checking if composer exists:\n'
           cmd /c dir D:\\a\\_temp\\msys64\\mingw64\\bin\\composer*
