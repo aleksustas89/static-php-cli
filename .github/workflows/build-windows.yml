@@ -11,73 +11,32 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest  # ПЕРЕКЛЮЧАЕМСЯ НА LINUX!
+    
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup PHP environment
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: curl, mbstring, openssl
-          tools: composer
-
+      - name: Setup environment
+        run: |
+          sudo apt update
+          sudo apt install -y git curl build-essential autoconf libtool pkg-config nasm
+          curl -sS https://getcomposer.org/installer | php
+          sudo mv composer.phar /usr/local/bin/composer
+          chmod +x /usr/local/bin/composer
+          
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
-
-      - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          install: >
-            git make autoconf automake libtool pkg-config nasm 
-            mingw-w64-x86_64-gcc 
-            mingw-w64-x86_64-openssl 
-            mingw-w64-x86_64-libxml2 
-            mingw-w64-x86_64-libzip 
-            mingw-w64-x86_64-curl 
-            mingw-w64-x86_64-oniguruma 
-            mingw-w64-x86_64-xz
-            tar
-
-      - name: Create directories
-        run: mkdir -p source/php-src downloads buildroot
-        shell: bash
-
-      - name: Download PHP sources
+        
+      - name: Download sources
         run: |
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
-        shell: bash
-
-      - name: Manual PHP extraction and prepare for SPC
-        run: |
-          echo "=== MANUAL EXTRACTION ==="
           
-          # Полностью очищаем
-          rm -rf source/php-src
-          mkdir -p source/php-src
-          
-          # Распаковываем
-          echo "Extracting PHP..."
-          tar -xf downloads/php-8.3.25.tar.xz --strip-components=1 -C source/php-src
-          
-          # Создаем файл-маркер чтобы spc не пытался перезаписать
-          echo "manual_extraction_$(date +%s)" > source/php-src/.spc_extracted
-          touch source/php-src/.prevent_auto_extract
-          
-          echo "✅ Ready for build"
-        shell: bash
-
       - name: Build static PHP
         run: |
-          # Пробуем с флагом --no-extract если поддерживается
-          ./bin/spc build --build-cli --build-embed "${{ github.event.inputs.extensions }}" --no-extract || \
-          ./bin/spc build --build-cli --build-embed "${{ github.event.inputs.extensions }}"
-        shell: bash
-
+          ./bin/spc build --build-cli "${{ github.event.inputs.extensions }}"
+          
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: php-windows
-          path: bin/php.exe
+          name: php-linux
+          path: bin/php
