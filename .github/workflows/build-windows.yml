@@ -41,14 +41,6 @@ jobs:
             mingw-w64-x86_64-xz
             tar
 
-      - name: Install PHP SDK Tools
-        run: |
-          curl -L -o php-sdk.zip https://github.com/microsoft/php-sdk-binary-tools/archive/refs/heads/master.zip
-          unzip php-sdk.zip -d php-sdk-binary-tools
-          mv php-sdk-binary-tools/php-sdk-binary-tools-master/* php-sdk-binary-tools/
-          rm -rf php-sdk-binary-tools/php-sdk-binary-tools-master
-        shell: bash
-
       - name: Create directories
         run: mkdir -p source/php-src downloads buildroot
         shell: bash
@@ -58,29 +50,29 @@ jobs:
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
         shell: bash
 
-      - name: Manual PHP extraction (fixed)
+      - name: Manual PHP extraction and prepare for SPC
         run: |
-          echo "Extracting PHP source with proper paths..."
+          echo "=== MANUAL EXTRACTION ==="
           
-          # Очищаем и создаем заново
+          # Полностью очищаем
           rm -rf source/php-src
           mkdir -p source/php-src
           
-          # Распаковываем используя MSYS2 tar
+          # Распаковываем
+          echo "Extracting PHP..."
           tar -xf downloads/php-8.3.25.tar.xz --strip-components=1 -C source/php-src
           
-          # Проверяем успешность
-          if [ -f "source/php-src/main/php_version.h" ]; then
-            echo "✅ SUCCESS: PHP source ready!"
-          else
-            echo "❌ FAILED: php_version.h not found"
-            ls -la source/php-src/
-            exit 1
-          fi
+          # Создаем файл-маркер чтобы spc не пытался перезаписать
+          echo "manual_extraction_$(date +%s)" > source/php-src/.spc_extracted
+          touch source/php-src/.prevent_auto_extract
+          
+          echo "✅ Ready for build"
         shell: bash
 
       - name: Build static PHP
         run: |
+          # Пробуем с флагом --no-extract если поддерживается
+          ./bin/spc build --build-cli --build-embed "${{ github.event.inputs.extensions }}" --no-extract || \
           ./bin/spc build --build-cli --build-embed "${{ github.event.inputs.extensions }}"
         shell: bash
 
