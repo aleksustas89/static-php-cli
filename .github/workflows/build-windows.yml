@@ -70,6 +70,8 @@ jobs:
           cmd /c mkdir D:\\a\\_temp\\msys64\\tmp
           printf 'Checking if tmp directory exists:\n'
           ls -l /tmp
+          printf 'Checking PHP extensions for Composer:\n'
+          cmd /c "D:\\a\\_temp\\msys64\\mingw64\\bin\\php.exe" -m
           curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
           printf 'Checking if composer-setup.php exists:\n'
           cmd /c dir D:\\a\\_temp\\msys64\\tmp\\composer-setup.php
