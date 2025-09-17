@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Setup MSYS2 with extra tools
+      - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -52,10 +52,39 @@ jobs:
 
       - name: Verify download
         run: |
-          echo "Downloads:"
+          echo "=== DOWNLOADS DIRECTORY ==="
           ls -la downloads/
-          echo "Source:"
-          ls -la source/
+          echo "=== PHP-SDK TOOLS ==="
+          ls -la php-sdk-binary-tools/bin/
+        shell: bash
+
+      - name: Manual PHP extraction
+        run: |
+          echo "Manually extracting PHP source..."
+          
+          # Проверяем что архив существует
+          if [ ! -f "downloads/php-8.3.25.tar.xz" ]; then
+            echo "ERROR: PHP archive not found!"
+            exit 1
+          fi
+          
+          # Очищаем старую директорию
+          rm -rf source/php-src
+          mkdir -p source/php-src
+          
+          # Распаковываем вручную
+          echo "Extracting with tar..."
+          tar -xf downloads/php-8.3.25.tar.xz -C source/php-src --strip-components=1
+          
+          # Проверяем что распаковалось
+          echo "Verifying extraction..."
+          ls -la source/php-src/
+          if [ -f "source/php-src/main/php_version.h" ]; then
+            echo "SUCCESS: PHP source extracted successfully!"
+          else
+            echo "ERROR: PHP source extraction failed!"
+            exit 1
+          fi
         shell: bash
 
       - name: Build static PHP
