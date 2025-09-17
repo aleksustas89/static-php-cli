@@ -15,6 +15,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Setup PHP environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, mbstring, openssl
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
@@ -30,16 +40,14 @@ jobs:
             mingw-w64-x86_64-oniguruma 
             mingw-w64-x86_64-xz
 
-      - name: Download PHP sources directly
+      - name: Download PHP sources
         run: |
-          # Скачиваем исходники PHP напрямую без Composer
           ./bin/spc download --clean
           ./bin/spc download --with-php=${{ github.event.inputs.php_version }} --for-extensions "${{ github.event.inputs.extensions }}"
         shell: bash
 
       - name: Build static PHP
         run: |
-          # Собираем статический PHP
           ./bin/spc build --build-cli --build-embed "${{ github.event.inputs.extensions }}"
         shell: bash
 
